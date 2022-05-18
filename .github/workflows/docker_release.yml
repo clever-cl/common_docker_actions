@@ -1,0 +1,140 @@
+name: Docker/Helm Build & Release
+
+on:
+  workflow_call:
+    inputs:
+      values_file_path:
+        required: true
+        type: string
+      chart_path:
+        required: true
+        type: string
+      project_name:
+        required: true
+        type: string
+
+env:
+  IMAGE_NAME: us-east1-docker.pkg.dev/clever-prod/clever/images/${{ inputs.project_name }}
+  CHART_REPO: us-east1-docker.pkg.dev/clever-prod/clever/charts
+  VALUES_FILE: ${{ inputs.values_file_path }}
+  CHART_FILE: ${{ inputs.chart_path }}/Chart.yaml
+  RELEASE_TAG: ${{ github.ref_name }}
+
+jobs:
+  build-push:
+    name: Build, Scan & Push
+    runs-on: gke-runner
+    if: (github.actor != 'dependabot[bot]' && github.ref_type == 'tag')
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Docker Metadata
+        uses: docker/metadata-action@v3
+        id: metadata
+        with:
+          images: ${{ env.IMAGE_NAME }}
+          tags: |
+            ${{ env.RELEASE_TAG }}
+            latest
+
+      - name: Kaniko build & push
+        uses: bymarshall/kaniko-action@v1.0.0
+        with:
+          push: true
+          tags: ${{ steps.metadata.outputs.tags }}
+          labels: ${{ steps.metadata.outputs.labels }}
+
+  release-staging:
+    name: [staging] Helm package & publish
+    needs: build-push
+    runs-on: gke-runner-staging
+    environment: staging
+    if: (github.actor != 'dependabot[bot]' && github.ref_type == 'tag' && contains(github.ref_name, '-RC'))
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Setup Chart
+        run: |
+            set -e
+            sudo apt update && sudo apt install gettext -y
+            export ENVIRONMENT="staging"
+            export GOOGLE_SA="${{ inputs.project_name }}-gsa-staging@clever-staging-305314.iam.gserviceaccount.com"
+            envsubst < ${{ env.VALUES_FILE }} > /tmp/values.yaml && mv /tmp/values.yaml ${{ env.VALUES_FILE }}
+            envsubst < ${{ env.CHART_FILE }} > /tmp/Chart.yaml && mv /tmp/Chart.yaml ${{ env.CHART_FILE }}
+
+      - name: Setup Helm
+        uses: azure/setup-helm@v1
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v0
+
+      - name: Helm Auth
+        run: | 
+            gcloud auth application-default print-access-token | helm registry login -u oauth2accesstoken \
+            --password-stdin https://us-east1-docker.pkg.dev
+
+      - name: Helm Package & Push
+        run: |
+            helm package ${{ inputs.chart_path }}
+            helm push ${{ inputs.project_name }}-${{ env.RELEASE_TAG }}.tgz oci://${{ env.CHART_REPO }}
+
+      - name: Setup kubectl 
+        uses: azure/setup-kubectl@v2.0
+        with:
+          version: 'v1.20.0'
+
+      - name: Release (staging)
+        if: ${{ success() }}
+        run: |
+            set -e
+            kubectl config set-context kubernetes --namespace=argocd && kubectl config use-context kubernetes
+            kubectl patch applications.argoproj.io ${{ inputs.project_name }} --patch '{"spec": { "source": { "targetRevision": "${{ env.RELEASE_TAG }}" } }}' --type merge
+
+  release-production:
+    name: [production] Helm package & publish
+    needs: build-push
+    runs-on: gke-runner-prod
+    environment: production
+    if: (github.actor != 'dependabot[bot]' && github.ref_type == 'tag' && !contains(github.ref_name, '-RC'))
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Setup Chart
+        run: |
+            set -e
+            sudo apt update && sudo apt install gettext -y
+            export ENVIRONMENT="prod"
+            export GOOGLE_SA="${{ inputs.project_name }}-gsa-prod@clever-prod.iam.gserviceaccount.com"
+            envsubst < ${{ env.VALUES_FILE }} > /tmp/values.yaml && mv /tmp/values.yaml ${{ env.VALUES_FILE }}
+            envsubst < ${{ env.CHART_FILE }} > /tmp/Chart.yaml && mv /tmp/Chart.yaml ${{ env.CHART_FILE }}
+        
+      - name: Setup Helm
+        uses: azure/setup-helm@v1
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v0
+
+      - name: Helm Auth
+        run: | 
+            gcloud auth application-default print-access-token | helm registry login -u oauth2accesstoken \
+            --password-stdin https://us-east1-docker.pkg.dev
+
+      - name: Helm Package & Push
+        run: |
+            helm package ${{ inputs.chart_path }}
+            helm push ${{ inputs.project_name }}-${{ env.RELEASE_TAG }}.tgz oci://${{ env.CHART_REPO }}
+      
+      - name: Setup kubectl 
+        uses: azure/setup-kubectl@v2.0
+        with:
+          version: 'v1.20.0'
+
+      - name: Release (prod)
+        if: ${{ success() }}
+        run: |
+            set -e
+            kubectl config set-context kubernetes --namespace=argocd && kubectl config use-context kubernetes
+            kubectl patch applications.argoproj.io ${{ inputs.project_name }} --patch '{"spec": { "source": { "targetRevision": "${{ env.RELEASE_TAG }}" } }}' --type merge
