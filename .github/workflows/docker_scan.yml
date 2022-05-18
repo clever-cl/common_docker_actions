@@ -1,0 +1,53 @@
+name: Docker Security Scan
+
+on:
+  workflow_call:
+    inputs:
+      values_file_path:
+        required: true
+        type: string
+      project_name:
+        required: true
+        type: string
+
+env:
+  IMAGE_NAME: us-east1-docker.pkg.dev/clever-prod/clever/images/${{ inputs.project_name }}
+  VALUES_FILE: ${{ inputs.values_file_path }}
+
+build-scan:
+    name: Docker Scan
+    runs-on: gke-runner
+    if: (github.actor != 'dependabot[bot]' && github.ref_type != 'tag')
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Default tag
+        id: tags
+        run: echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
+
+      - name: Docker Metadata
+        uses: docker/metadata-action@v3
+        id: metadata
+        with:
+          images: ${{ env.IMAGE_NAME }}
+          tags: |
+            ${{ steps.tags.outputs.sha_short }}
+
+      - name: Kaniko build & export
+        uses: bymarshall/kaniko-action@v1.0.0
+        if: ${{ github.ref_name != 'master' }}
+        with:
+          push: false
+          tags: ${{ steps.metadata.outputs.tags }}
+          labels: ${{ steps.metadata.outputs.labels }}
+          tar_file: image.tar
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          ignore-unfixed: true
+          input: image.tar
+          exit-code: 1
+          severity: 'CRITICAL,HIGH'
+          security-checks: vuln,config
