@@ -40,6 +40,4 @@ jobs:
     # Require inputs of this workflow
     with:
       project_name: my-app
-      values_file_path: ./helm/chart/values.yaml
-      chart_path: ./helm/chart/
 ```

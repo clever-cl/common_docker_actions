@@ -3,16 +3,12 @@ name: Docker Security Scan
 on:
   workflow_call:
     inputs:
-      values_file_path:
-        required: true
-        type: string
       project_name:
         required: true
         type: string
 
 env:
   IMAGE_NAME: us-east1-docker.pkg.dev/clever-prod/clever/images/${{ inputs.project_name }}
-  VALUES_FILE: ${{ inputs.values_file_path }}
 
 build-scan:
     name: Docker Scan
