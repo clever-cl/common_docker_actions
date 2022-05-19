@@ -10,7 +10,7 @@ on:
 env:
   IMAGE_NAME: us-east1-docker.pkg.dev/clever-prod/clever/images/${{ inputs.project_name }}
 
-build-scan:
+jobs:
     name: Docker Scan
     runs-on: gke-runner
     if: (github.actor != 'dependabot[bot]' && github.ref_type != 'tag')
