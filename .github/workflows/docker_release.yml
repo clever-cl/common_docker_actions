@@ -46,7 +46,7 @@ jobs:
           labels: ${{ steps.metadata.outputs.labels }}
 
   release-staging:
-    name: [staging] Helm package & publish
+    name: "[staging] Helm package & publish"
     needs: build-push
     runs-on: gke-runner-staging
     environment: staging
@@ -93,7 +93,7 @@ jobs:
             kubectl patch applications.argoproj.io ${{ inputs.project_name }} --patch '{"spec": { "source": { "targetRevision": "${{ env.RELEASE_TAG }}" } }}' --type merge
 
   release-production:
-    name: [production] Helm package & publish
+    name: "[production] Helm package & publish"
     needs: build-push
     runs-on: gke-runner-prod
     environment: production
