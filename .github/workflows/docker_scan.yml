@@ -8,7 +8,7 @@ on:
         type: string
 
 env:
-  IMAGE_NAME: us-east1-docker.pkg.dev/clever-prod/clever/images/${{ inputs.project_name }}
+  IMAGE_NAME: ${{ secrets.CLEVER_DOCKER_REGISTRY }}/${{ inputs.project_name }}
 
 jobs:
   build-scan:

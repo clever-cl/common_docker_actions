@@ -14,8 +14,7 @@ on:
         type: string
 
 env:
-  IMAGE_NAME: us-east1-docker.pkg.dev/clever-prod/clever/images/${{ inputs.project_name }}
-  CHART_REPO: us-east1-docker.pkg.dev/clever-prod/clever/charts
+  IMAGE_NAME: ${{ secrets.CLEVER_DOCKER_REGISTRY }}/${{ inputs.project_name }}
   VALUES_FILE: ${{ inputs.values_file_path }}
   CHART_FILE: ${{ inputs.chart_path }}/Chart.yaml
   RELEASE_TAG: ${{ github.ref_name }}
@@ -78,7 +77,7 @@ jobs:
       - name: Helm Package & Push
         run: |
             helm package ${{ inputs.chart_path }}
-            helm push ${{ inputs.project_name }}-${{ env.RELEASE_TAG }}.tgz oci://${{ env.CHART_REPO }}
+            helm push ${{ inputs.project_name }}-${{ env.RELEASE_TAG }}.tgz oci://${{ secrets.CLEVER_HELM_REGISTRY }}
 
       - name: Setup kubectl 
         uses: azure/setup-kubectl@v2.0
@@ -120,12 +119,12 @@ jobs:
       - name: Helm Auth
         run: | 
             gcloud auth application-default print-access-token | helm registry login -u oauth2accesstoken \
-            --password-stdin https://us-east1-docker.pkg.dev
+            --password-stdin https://${{ secrets.CLEVER_HELM_REGISTRY }}
 
       - name: Helm Package & Push
         run: |
             helm package ${{ inputs.chart_path }}
-            helm push ${{ inputs.project_name }}-${{ env.RELEASE_TAG }}.tgz oci://${{ env.CHART_REPO }}
+            helm push ${{ inputs.project_name }}-${{ env.RELEASE_TAG }}.tgz oci://${{ secrets.CLEVER_HELM_REGISTRY }}
       
       - name: Setup kubectl 
         uses: azure/setup-kubectl@v2.0
