@@ -78,7 +78,7 @@ jobs:
       - name: Helm Auth
         run: | 
             gcloud auth application-default print-access-token | helm registry login -u oauth2accesstoken \
-            --password-stdin https://us-east1-docker.pkg.dev
+            --password-stdin ${{ secrets.CLEVER_DOCKER_REGISTRY }}
 
       - name: Helm Package & Push
         run: |
