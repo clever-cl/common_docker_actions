@@ -12,6 +12,11 @@ on:
       project_name:
         required: true
         type: string
+    secrets:
+      APP_GSA:
+        required: false
+      APP_KSA:
+        required: false
 
 env:
   IMAGE_NAME: ${{ secrets.CLEVER_DOCKER_REGISTRY }}/${{ inputs.project_name }}
@@ -59,7 +64,8 @@ jobs:
             set -e
             sudo apt update && sudo apt install gettext -y
             export ENVIRONMENT="staging"
-            export GOOGLE_SA="${{ inputs.project_name }}-gsa-staging@clever-staging-305314.iam.gserviceaccount.com"
+            export APP_GSA="${{ secrets.APP_GSA }}"
+            export APP_KSA="${{ secrets.APP_KSA }}"
             envsubst < ${{ env.VALUES_FILE }} > /tmp/values.yaml && mv /tmp/values.yaml ${{ env.VALUES_FILE }}
             envsubst < ${{ env.CHART_FILE }} > /tmp/Chart.yaml && mv /tmp/Chart.yaml ${{ env.CHART_FILE }}
 
@@ -106,7 +112,8 @@ jobs:
             set -e
             sudo apt update && sudo apt install gettext -y
             export ENVIRONMENT="prod"
-            export GOOGLE_SA="${{ inputs.project_name }}-gsa-prod@clever-prod.iam.gserviceaccount.com"
+            export APP_GSA="${{ secrets.APP_GSA }}"
+            export APP_KSA="${{ secrets.APP_KSA }}"
             envsubst < ${{ env.VALUES_FILE }} > /tmp/values.yaml && mv /tmp/values.yaml ${{ env.VALUES_FILE }}
             envsubst < ${{ env.CHART_FILE }} > /tmp/Chart.yaml && mv /tmp/Chart.yaml ${{ env.CHART_FILE }}
         
