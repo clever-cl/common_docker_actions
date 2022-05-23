@@ -13,12 +13,19 @@ on:
 jobs:
   build:
     # Github action path and version
-    uses: biceventures/common_docker_actions/.github/workflows/docker_release.yml@master
+    uses: biceventures/common_docker_actions/.github/workflows/docker_release.yml@stable
     # Require inputs of this workflow
     with:
       project_name: my-app
       values_file_path: ./helm/chart/values.yaml
       chart_path: ./helm/chart/
+    secrets:
+      # For use GCP services with Workload Identity
+      APP_KSA: ${{ secrets.APP_KSA }}
+      APP_GSA: ${{ secrets.APP_GSA }}
+      # For use Docker Registry and Helm
+      CLEVER_DOCKER_REGISTRY: ${{ secrets.CLEVER_DOCKER_REGISTRY }}
+      CLEVER_HELM_REGISTRY: ${{ secrets.CLEVER_HELM_REGISTRY }}
 ```
 
 Example using [Docker Security Scan](.github/workflows/docker_scan.yml) workflow:
@@ -36,8 +43,11 @@ on:
 jobs:
   build:
     # Github action path and version
-    uses: biceventures/common_docker_actions/.github/workflows/docker_scan.yml@master
+    uses: biceventures/common_docker_actions/.github/workflows/docker_scan.yml@stable
     # Require inputs of this workflow
     with:
-      project_name: my-app
+      project_name: myapp
+    secrets:
+      # For use Docker Registry
+      CLEVER_DOCKER_REGISTRY: ${{ secrets.CLEVER_DOCKER_REGISTRY }}
 ```

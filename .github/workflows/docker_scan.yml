@@ -6,6 +6,9 @@ on:
       project_name:
         required: true
         type: string
+    secrets:
+      CLEVER_DOCKER_REGISTRY:
+        required: true
 
 env:
   IMAGE_NAME: ${{ secrets.CLEVER_DOCKER_REGISTRY }}/${{ inputs.project_name }}
