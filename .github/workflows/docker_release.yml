@@ -17,6 +17,10 @@ on:
         required: false
       APP_KSA:
         required: false
+      CLEVER_HELM_REGISTRY:
+        required: true
+      CLEVER_DOCKER_REGISTRY:
+        required: true
 
 env:
   IMAGE_NAME: ${{ secrets.CLEVER_DOCKER_REGISTRY }}/${{ inputs.project_name }}
