@@ -23,6 +23,7 @@ jobs:
       # For use GCP services with Workload Identity
       APP_KSA: ${{ secrets.APP_KSA }}
       APP_GSA: ${{ secrets.APP_GSA }}
+      GOOGLE_PROJECT_ID: ${{ secrets.GOOGLE_PROJECT_ID }}
       # For use Docker Registry and Helm
       CLEVER_DOCKER_REGISTRY: ${{ secrets.CLEVER_DOCKER_REGISTRY }}
       CLEVER_HELM_REGISTRY: ${{ secrets.CLEVER_HELM_REGISTRY }}
