@@ -13,7 +13,7 @@ on:
         required: true
         type: string
     secrets:
-      SM_PROJECT_ID:
+      GOOGLE_PROJECT_ID:
         required: false
       APP_GSA:
         required: false
@@ -70,7 +70,7 @@ jobs:
             set -e
             sudo apt update && sudo apt install gettext -y
             export ENVIRONMENT="staging"
-            export APP_GSA="${{ secrets.APP_GSA }}" APP_KSA="${{ secrets.APP_KSA }}" SM_PROJECT_ID="${{ secrets.SM_PROJECT_ID }}"
+            export APP_GSA="${{ secrets.APP_GSA }}" APP_KSA="${{ secrets.APP_KSA }}" GOOGLE_PROJECT_ID="${{ secrets.GOOGLE_PROJECT_ID }}"
             envsubst < ${{ env.VALUES_FILE }} > /tmp/values.yaml && mv /tmp/values.yaml ${{ env.VALUES_FILE }}
             envsubst < ${{ env.CHART_FILE }} > /tmp/Chart.yaml && mv /tmp/Chart.yaml ${{ env.CHART_FILE }}
 
@@ -117,7 +117,7 @@ jobs:
             set -e
             sudo apt update && sudo apt install gettext -y
             export ENVIRONMENT="prod"
-            export APP_GSA="${{ secrets.APP_GSA }}" APP_KSA="${{ secrets.APP_KSA }}" SM_PROJECT_ID="${{ secrets.SM_PROJECT_ID }}"
+            export APP_GSA="${{ secrets.APP_GSA }}" APP_KSA="${{ secrets.APP_KSA }}" GOOGLE_PROJECT_ID="${{ secrets.GOOGLE_PROJECT_ID }}"
             envsubst < ${{ env.VALUES_FILE }} > /tmp/values.yaml && mv /tmp/values.yaml ${{ env.VALUES_FILE }}
             envsubst < ${{ env.CHART_FILE }} > /tmp/Chart.yaml && mv /tmp/Chart.yaml ${{ env.CHART_FILE }}
         
