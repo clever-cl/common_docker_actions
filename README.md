@@ -53,7 +53,8 @@ jobs:
       CLEVER_DOCKER_REGISTRY: ${{ secrets.CLEVER_DOCKER_REGISTRY }}
 ```
 
-Example using [Docker Security Scan with build args](.github/workflows/docker_scan.yml) workflow:
+Use the inherit keyword to implicitly pass the secrets.
+
 ```yaml
 # Use this workflow to be sure that you have a secure docker image. 
 name: Docker Security Scan
@@ -72,8 +73,5 @@ jobs:
     # Require inputs of this workflow
     with:
       project_name: ${{ github.event.repository.name }}
-      build_args: NPM_TOKEN=${{ secrets.NPM_TOKEN }}
-    secrets:
-      # For use Docker Registry
-      CLEVER_DOCKER_REGISTRY: ${{ secrets.CLEVER_DOCKER_REGISTRY }}
+    secrets: inherit
 ```

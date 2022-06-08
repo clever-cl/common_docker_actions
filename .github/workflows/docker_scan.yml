@@ -7,16 +7,15 @@ on:
         required: true
         type: string
         description: App name or service name / use repository name by default.
-      build_args:
-        required: false
-        type: string
-        description: Comma separated list of extra build-args for docker (build-time variables)
       dockerfile_path:
         required: false
         type: string
         description: Path to the Dockerfile. Default is Dockerfile.
         default: Dockerfile
     secrets:
+      BUILD_ARGS:
+        required: false
+        description: Comma separated list of extra build-args for docker (build-time variables)
       CLEVER_DOCKER_REGISTRY:
         required: true
 
@@ -53,7 +52,7 @@ jobs:
           labels: ${{ steps.metadata.outputs.labels }}
           tar_file: image.tar
           file: ${{ inputs.dockerfile_path }}
-          build_args: ${{ inputs.build_args }}
+          build_args: ${{ secrets.BUILD_ARGS }}
 
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@master
