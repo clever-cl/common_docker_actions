@@ -16,7 +16,7 @@ jobs:
     uses: biceventures/common_docker_actions/.github/workflows/docker_release.yml@stable
     # Require inputs of this workflow
     with:
-      project_name: my-app
+      project_name: ${{ github.event.repository.name }}
       values_file_path: ./helm/chart/values.yaml
       chart_path: ./helm/chart/
     secrets:
@@ -47,7 +47,32 @@ jobs:
     uses: biceventures/common_docker_actions/.github/workflows/docker_scan.yml@stable
     # Require inputs of this workflow
     with:
-      project_name: myapp
+      project_name: ${{ github.event.repository.name }}
+    secrets:
+      # For use Docker Registry
+      CLEVER_DOCKER_REGISTRY: ${{ secrets.CLEVER_DOCKER_REGISTRY }}
+```
+
+Example using [Docker Security Scan with build args](.github/workflows/docker_scan.yml) workflow:
+```yaml
+# Use this workflow to be sure that you have a secure docker image. 
+name: Docker Security Scan
+
+on:
+  # build and test in PRs
+  pull_request:
+    paths:
+     - Dockerfile
+     - src/**
+
+jobs:
+  build:
+    # Github action path and version
+    uses: biceventures/common_docker_actions/.github/workflows/docker_scan.yml@stable
+    # Require inputs of this workflow
+    with:
+      project_name: ${{ github.event.repository.name }}
+      build_args: NPM_TOKEN=${{ secrets.NPM_TOKEN }}
     secrets:
       # For use Docker Registry
       CLEVER_DOCKER_REGISTRY: ${{ secrets.CLEVER_DOCKER_REGISTRY }}
