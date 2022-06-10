@@ -44,7 +44,7 @@ jobs:
             ${{ steps.tags.outputs.sha_short }}
 
       - name: Kaniko build & export
-        uses: bymarshall/kaniko-action@v1.0.1
+        uses: bymarshall/kaniko-action@v1.0.3
         if: ${{ github.ref_name != 'master' }}
         with:
           push: false
