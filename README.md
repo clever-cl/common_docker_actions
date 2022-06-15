@@ -75,3 +75,22 @@ jobs:
       project_name: ${{ github.event.repository.name }}
     secrets: inherit
 ```
+
+Example using [Lint and Test Helm Charts](.github/workflows/helm_lint.yml) workflow:
+```yaml
+# Use this workflow to create and push both docker image and helm chart package.
+name: Helm Lint and Test Charts
+
+on: pull_request
+
+jobs:
+  build:
+    # Github action path and version
+    uses: biceventures/common_docker_actions/.github/workflows/helm_lint.yml@stable
+    # Require inputs of this workflow
+    with:
+      project_name: ${{ github.event.repository.name }}
+      values_file_path: ./helm/chart/values.yaml
+      chart_path: ./helm/chart/
+    secrets: inherit
+```

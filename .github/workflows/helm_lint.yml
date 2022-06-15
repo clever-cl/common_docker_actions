@@ -3,6 +3,10 @@ name: Lint and Test Charts
 on:
   workflow_call:
     inputs:
+      project_name:
+        required: true
+        type: string
+        description: App name or service name / use repository name by default.
       values_file_path:
         required: true
         type: string
@@ -32,7 +36,7 @@ env:
   CT_BUILD_ID: ${{ github.run_id }}
   VALUES_FILE: ${{ inputs.values_file_path }}
   CHART_FILE: ${{ inputs.chart_path }}/Chart.yaml
-  IMAGE_NAME: ${{ secrets.CLEVER_DOCKER_REGISTRY }}/${{ github.event.repository.name }}
+  IMAGE_NAME: ${{ secrets.CLEVER_DOCKER_REGISTRY }}/${{ inputs.project_name }}
 
 jobs:
   lint-test:
@@ -56,7 +60,16 @@ jobs:
       - name: Setup chart-testing
         uses: helm/chart-testing-action@v2.2.1
 
+      - name: Run chart-testing (list-changed)
+        id: list-changed
+        run: |
+          changed=$(ct list-changed --target-branch ${{ env.CURRENT_BRANCH }})
+          if [[ -n "$changed" ]]; then
+            echo "::set-output name=changed::true"
+          fi
+
       - name: Setup Chart
+        if: steps.list-changed.outputs.changed == 'true'
         env:
           ENVIRONMENT: staging
           RELEASE_TAG: "1.0.0"
@@ -70,13 +83,6 @@ jobs:
             envsubst < ${{ env.VALUES_FILE }} > /tmp/values.yaml && mv /tmp/values.yaml ${{ env.VALUES_FILE }}
             envsubst < ${{ env.CHART_FILE }} > /tmp/Chart.yaml && mv /tmp/Chart.yaml ${{ env.CHART_FILE }}
 
-      - name: Run chart-testing (list-changed)
-        id: list-changed
-        run: |
-          changed=$(ct list-changed --target-branch ${{ env.CURRENT_BRANCH }})
-          if [[ -n "$changed" ]]; then
-            echo "::set-output name=changed::true"
-          fi
       - name: Run chart-testing (lint)
         if: steps.list-changed.outputs.changed == 'true'
         run: ct lint --validate-maintainers=false --check-version-increment=false
@@ -88,5 +94,4 @@ jobs:
       - name: Run Helm install dry-run
         if: steps.list-changed.outputs.changed == 'true'
         run: |
-          CHART_DIR=${{ env.CHART_FILE }}
-          helm install --dry-run ${{ github.event.repository.name }} "${CHART_DIR/%Chart.yaml/}" --create-namespace --namespace=lint
+          helm install --dry-run ${{ inputs.project_name }} ${{ inputs.chart_path }} --create-namespace --namespace=lint
