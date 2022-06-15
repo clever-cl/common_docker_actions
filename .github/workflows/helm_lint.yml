@@ -1,0 +1,92 @@
+name: Lint and Test Charts
+
+on:
+  workflow_call:
+    inputs:
+      values_file_path:
+        required: true
+        type: string
+        description: Helm values.yaml file path.
+      chart_path:
+        required: true
+        type: string
+        description: Chart project folder path.
+    secrets:
+      GOOGLE_PROJECT_ID:
+        required: false
+        description: Google project id.
+      APP_GSA:
+        required: false
+        description: App Google service account.
+      APP_KSA:
+        required: false
+        description: App Kubernetes service account.
+      CLEVER_HELM_REGISTRY:
+        required: true
+      CLEVER_DOCKER_REGISTRY:
+        required: true
+
+env:
+  CURRENT_BRANCH: ${{ github.head_ref }}
+  CT_CHART_DIRS: helm
+  CT_BUILD_ID: ${{ github.run_id }}
+  VALUES_FILE: ${{ inputs.values_file_path }}
+  CHART_FILE: ${{ inputs.chart_path }}/Chart.yaml
+  IMAGE_NAME: ${{ secrets.CLEVER_DOCKER_REGISTRY }}/${{ github.event.repository.name }}
+
+jobs:
+  lint-test:
+    runs-on: ubuntu-latest
+    environment: staging
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v1
+        with:
+          version: v3.8.1
+
+      - uses: actions/setup-python@v2
+        with:
+          python-version: 3.7
+
+      - name: Setup chart-testing
+        uses: helm/chart-testing-action@v2.2.1
+
+      - name: Setup Chart
+        env:
+          ENVIRONMENT: staging
+          RELEASE_TAG: "1.0.0"
+          APP_GSA: ${{ secrets.APP_GSA }}
+          APP_KSA: ${{ secrets.APP_KSA }}
+          GOOGLE_PROJECT_ID: ${{ secrets.GOOGLE_PROJECT_ID }}
+        run: |
+            set -e
+            sudo apt update && sudo apt install gettext -y
+            echo "Executing envsubst for replace variables in Chart and values..."
+            envsubst < ${{ env.VALUES_FILE }} > /tmp/values.yaml && mv /tmp/values.yaml ${{ env.VALUES_FILE }}
+            envsubst < ${{ env.CHART_FILE }} > /tmp/Chart.yaml && mv /tmp/Chart.yaml ${{ env.CHART_FILE }}
+
+      - name: Run chart-testing (list-changed)
+        id: list-changed
+        run: |
+          changed=$(ct list-changed --target-branch ${{ env.CURRENT_BRANCH }})
+          if [[ -n "$changed" ]]; then
+            echo "::set-output name=changed::true"
+          fi
+      - name: Run chart-testing (lint)
+        if: steps.list-changed.outputs.changed == 'true'
+        run: ct lint --validate-maintainers=false --check-version-increment=false
+
+      - name: Create Kind K8S Cluster
+        uses: helm/kind-action@v1.2.0
+        if: steps.list-changed.outputs.changed == 'true'
+
+      - name: Run Helm install dry-run
+        if: steps.list-changed.outputs.changed == 'true'
+        run: |
+          CHART_DIR=${{ env.CHART_FILE }}
+          helm install --dry-run ${{ github.event.repository.name }} "${CHART_DIR/%Chart.yaml/}" --create-namespace --namespace=lint
