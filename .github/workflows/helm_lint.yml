@@ -25,6 +25,9 @@ on:
       APP_KSA:
         required: false
         description: App Kubernetes service account.
+      CLOUDFLARE_CA_KEY:
+        required: false
+        description: Cloudflare API service key for Origin CA to automatically handle origin certificates.
       CLEVER_HELM_REGISTRY:
         required: true
       CLEVER_DOCKER_REGISTRY:
