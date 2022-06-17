@@ -53,7 +53,7 @@ jobs:
           tar_file: image.tar
           file: ${{ inputs.dockerfile_path }}
           build_args: ${{ secrets.BUILD_ARGS }}
-          cache: true
+          cache: false # Do not use cache used with push: false
           snapshot_mode: redo
 
       - name: Run Trivy vulnerability scanner
