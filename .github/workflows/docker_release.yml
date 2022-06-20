@@ -66,13 +66,17 @@ jobs:
             latest
 
       - name: Kaniko build & push
-        uses: bymarshall/kaniko-action@v1.0.3
+        uses: bymarshall/kaniko-action@v1.0.4
         with:
           push: true
           tags: ${{ steps.metadata.outputs.tags }}
           labels: ${{ steps.metadata.outputs.labels }}
           file: ${{ inputs.dockerfile_path }}
           build_args: ${{ secrets.BUILD_ARGS }}
+          cache: true
+          cache_ttl: 24h
+          snapshot_mode: redo
+          use_new_run: true
 
   release-staging:
     name: "[staging] Helm package & publish"

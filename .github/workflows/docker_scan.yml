@@ -44,7 +44,7 @@ jobs:
             ${{ steps.tags.outputs.sha_short }}
 
       - name: Kaniko build & export
-        uses: bymarshall/kaniko-action@v1.0.3
+        uses: bymarshall/kaniko-action@v1.0.4
         if: ${{ github.ref_name != 'master' }}
         with:
           push: false
@@ -53,6 +53,9 @@ jobs:
           tar_file: image.tar
           file: ${{ inputs.dockerfile_path }}
           build_args: ${{ secrets.BUILD_ARGS }}
+          cache: false # Do not use cache used with push: false
+          snapshot_mode: redo
+          use_new_run: true
 
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@master
