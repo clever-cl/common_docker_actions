@@ -12,6 +12,11 @@ on:
         type: string
         description: Path to the Dockerfile. Default is Dockerfile.
         default: Dockerfile
+      docker_context:
+        required: false
+        type: string
+        description: Path to the build context. Default to the workspace
+        default: ''
     secrets:
       BUILD_ARGS:
         required: false
@@ -52,6 +57,7 @@ jobs:
           labels: ${{ steps.metadata.outputs.labels }}
           tar_file: image.tar
           file: ${{ inputs.dockerfile_path }}
+          context: ${{ inputs.docker_context }}
           build_args: ${{ secrets.BUILD_ARGS }}
           cache: false # Do not use cache used with push: false
           snapshot_mode: redo
