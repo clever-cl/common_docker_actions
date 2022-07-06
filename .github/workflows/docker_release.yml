@@ -71,7 +71,7 @@ jobs:
             latest
 
       - name: Kaniko build & push
-        uses: bymarshall/kaniko-action@v1.0.4
+        uses: bymarshall/kaniko-action@v1.0.5
         with:
           push: true
           tags: ${{ steps.metadata.outputs.tags }}
