@@ -19,6 +19,8 @@ jobs:
       project_name: ${{ github.event.repository.name }}
       values_file_path: ./helm/chart/values.yaml
       chart_path: ./helm/chart/
+      dockerfile_path: 'path/to/Dockerfile' # optional
+      docker_context: 'path/to/build/context/' # optional
     secrets:
       # For use GCP services with Workload Identity
       APP_KSA: ${{ secrets.APP_KSA }}
@@ -48,6 +50,8 @@ jobs:
     # Require inputs of this workflow
     with:
       project_name: ${{ github.event.repository.name }}
+      dockerfile_path: 'path/to/Dockerfile' # optional
+      docker_context: 'path/to/build/context/' # optional
     secrets:
       # For use Docker Registry
       CLEVER_DOCKER_REGISTRY: ${{ secrets.CLEVER_DOCKER_REGISTRY }}
@@ -73,6 +77,8 @@ jobs:
     # Require inputs of this workflow
     with:
       project_name: ${{ github.event.repository.name }}
+      dockerfile_path: 'path/to/Dockerfile' # optional
+      docker_context: 'path/to/build/context/' # optional
     secrets: inherit
 ```
 

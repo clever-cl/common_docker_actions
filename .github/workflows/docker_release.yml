@@ -20,6 +20,11 @@ on:
         type: string
         description: Path to the Dockerfile. Default is Dockerfile.
         default: Dockerfile
+      docker_context:
+        required: false
+        type: string
+        description: Path to the build context. Default to the workspace
+        default: ''
     secrets:
       BUILD_ARGS:
         required: false
@@ -72,6 +77,7 @@ jobs:
           tags: ${{ steps.metadata.outputs.tags }}
           labels: ${{ steps.metadata.outputs.labels }}
           file: ${{ inputs.dockerfile_path }}
+          context: ${{ inputs.docker_context }}
           build_args: ${{ secrets.BUILD_ARGS }}
           cache: true
           cache_ttl: 24h
