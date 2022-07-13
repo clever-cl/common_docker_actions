@@ -13,7 +13,7 @@ on:
 jobs:
   build:
     # Github action path and version
-    uses: biceventures/common_docker_actions/.github/workflows/docker_release.yml@stable
+    uses: clever-cl/common_docker_actions/.github/workflows/docker_release.yml@stable
     # Require inputs of this workflow
     with:
       project_name: ${{ github.event.repository.name }}
@@ -46,7 +46,7 @@ on:
 jobs:
   build:
     # Github action path and version
-    uses: biceventures/common_docker_actions/.github/workflows/docker_scan.yml@stable
+    uses: clever-cl/common_docker_actions/.github/workflows/docker_scan.yml@stable
     # Require inputs of this workflow
     with:
       project_name: ${{ github.event.repository.name }}
@@ -73,7 +73,7 @@ on:
 jobs:
   build:
     # Github action path and version
-    uses: biceventures/common_docker_actions/.github/workflows/docker_scan.yml@stable
+    uses: clever-cl/common_docker_actions/.github/workflows/docker_scan.yml@stable
     # Require inputs of this workflow
     with:
       project_name: ${{ github.event.repository.name }}
@@ -92,7 +92,7 @@ on: pull_request
 jobs:
   build:
     # Github action path and version
-    uses: biceventures/common_docker_actions/.github/workflows/helm_lint.yml@stable
+    uses: clever-cl/common_docker_actions/.github/workflows/helm_lint.yml@stable
     # Require inputs of this workflow
     with:
       project_name: ${{ github.event.repository.name }}
