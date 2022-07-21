@@ -29,7 +29,7 @@ env:
   
 jobs:
   build-scan:
-    name: Docker Scan
+    name: Docker Build & Scan
     runs-on: gke-runner
     environment: staging
     if: (github.actor != 'dependabot[bot]' && github.ref_type != 'tag')
