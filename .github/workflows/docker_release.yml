@@ -56,6 +56,7 @@ jobs:
   build-push:
     name: Build, Scan & Push
     runs-on: gke-runner
+    environment: production
     if: (github.actor != 'dependabot[bot]' && github.ref_type == 'tag')
     steps:
       - name: Checkout

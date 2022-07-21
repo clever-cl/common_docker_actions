@@ -31,6 +31,7 @@ jobs:
   build-scan:
     name: Docker Scan
     runs-on: gke-runner
+    environment: staging
     if: (github.actor != 'dependabot[bot]' && github.ref_type != 'tag')
     steps:
       - name: Checkout
