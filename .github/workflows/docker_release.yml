@@ -119,7 +119,7 @@ jobs:
 
   release-staging:
     name: "[staging] Helm package & publish"
-    needs: build-push
+    needs: build-push-staging
     runs-on: gke-runner-staging
     environment: staging
     if: (github.actor != 'dependabot[bot]' && github.ref_type == 'tag' && contains(github.ref_name, '-RC'))
@@ -170,7 +170,7 @@ jobs:
 
   release-production:
     name: "[production] Helm package & publish"
-    needs: build-push
+    needs: build-push-production
     runs-on: gke-runner-prod
     environment: production
     if: (github.actor != 'dependabot[bot]' && github.ref_type == 'tag' && !contains(github.ref_name, '-RC'))
