@@ -63,7 +63,7 @@ jobs:
           cache: false # Do not use cache used with push: false
           snapshot_mode: redo
           use_new_run: true
-          debug_mode: true
+          debug_mode: false
 
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@master
