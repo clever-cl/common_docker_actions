@@ -53,10 +53,11 @@ env:
   RELEASE_TAG: ${{ github.ref_name }}
 
 jobs:
-  build-push:
-    name: Build, Scan & Push
+  build-push-staging:
+    name: Docker build & Push
     runs-on: gke-runner
-    if: (github.actor != 'dependabot[bot]' && github.ref_type == 'tag')
+    environment: staging
+    if: (github.actor != 'dependabot[bot]' && github.ref_type == 'tag' && contains(github.ref_name, '-RC'))
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -83,10 +84,45 @@ jobs:
           cache_ttl: 24h
           snapshot_mode: redo
           use_new_run: true
+          debug_mode: false
+
+
+  build-push-production:
+    name: "[production] Docker build & Push"
+    runs-on: gke-runner
+    environment: production
+    if: (github.actor != 'dependabot[bot]' && github.ref_type == 'tag' && !contains(github.ref_name, '-RC'))
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Docker Metadata
+        uses: docker/metadata-action@v3
+        id: metadata
+        with:
+          images: ${{ env.IMAGE_NAME }}
+          tags: |
+            ${{ env.RELEASE_TAG }}
+            latest
+
+      - name: Kaniko build & push
+        uses: bymarshall/kaniko-action@v1.0.5
+        with:
+          push: true
+          tags: ${{ steps.metadata.outputs.tags }}
+          labels: ${{ steps.metadata.outputs.labels }}
+          file: ${{ inputs.dockerfile_path }}
+          context: ${{ inputs.docker_context }}
+          build_args: ${{ secrets.BUILD_ARGS }}
+          cache: true
+          cache_ttl: 24h
+          snapshot_mode: redo
+          use_new_run: true
+          debug_mode: false
 
   release-staging:
     name: "[staging] Helm package & publish"
-    needs: build-push
+    needs: build-push-staging
     runs-on: gke-runner-staging
     environment: staging
     if: (github.actor != 'dependabot[bot]' && github.ref_type == 'tag' && contains(github.ref_name, '-RC'))
@@ -137,7 +173,7 @@ jobs:
 
   release-production:
     name: "[production] Helm package & publish"
-    needs: build-push
+    needs: build-push-production
     runs-on: gke-runner-prod
     environment: production
     if: (github.actor != 'dependabot[bot]' && github.ref_type == 'tag' && !contains(github.ref_name, '-RC'))

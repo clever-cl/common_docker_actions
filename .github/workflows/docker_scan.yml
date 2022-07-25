@@ -29,8 +29,9 @@ env:
   
 jobs:
   build-scan:
-    name: Docker Scan
+    name: Docker Build & Scan
     runs-on: gke-runner
+    environment: staging
     if: (github.actor != 'dependabot[bot]' && github.ref_type != 'tag')
     steps:
       - name: Checkout
@@ -62,6 +63,7 @@ jobs:
           cache: false # Do not use cache used with push: false
           snapshot_mode: redo
           use_new_run: true
+          debug_mode: false
 
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@master
