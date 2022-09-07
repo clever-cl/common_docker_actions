@@ -79,6 +79,7 @@ jobs:
           APP_GSA: ${{ secrets.APP_GSA }}
           APP_KSA: ${{ secrets.APP_KSA }}
           GOOGLE_PROJECT_ID: ${{ secrets.GOOGLE_PROJECT_ID }}
+          CLOUDFLARE_CA_KEY: ${{ secrets.CLOUDFLARE_CA_KEY }}
         run: |
             set -e
             sudo apt update && sudo apt install gettext -y
