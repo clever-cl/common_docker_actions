@@ -43,7 +43,7 @@ env:
 
 jobs:
   lint-test:
-    runs-on: ubuntu-latest
+    runs-on: gke-runner-staging
     environment: staging
     steps:
       - name: Checkout
@@ -91,11 +91,7 @@ jobs:
         if: steps.list-changed.outputs.changed == 'true'
         run: ct lint --validate-maintainers=false --check-version-increment=false
 
-      - name: Create Kind K8S Cluster
-        uses: helm/kind-action@v1.2.0
-        if: steps.list-changed.outputs.changed == 'true'
-
       - name: Run Helm install dry-run
         if: steps.list-changed.outputs.changed == 'true'
         run: |
-          helm install --dry-run ${{ inputs.project_name }} ${{ inputs.chart_path }} --create-namespace --namespace=lint
+          helm install --dry-run ${{ inputs.project_name }} ${{ inputs.chart_path }} --namespace=default
