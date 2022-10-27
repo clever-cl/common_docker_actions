@@ -144,7 +144,7 @@ jobs:
             envsubst < ${{ env.CHART_FILE }} > /tmp/Chart.yaml && mv /tmp/Chart.yaml ${{ env.CHART_FILE }}
 
       - name: Setup Helm
-        uses: azure/setup-helm@v1
+        uses: azure/setup-helm@v3
 
       - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@v0
@@ -195,7 +195,7 @@ jobs:
             envsubst < ${{ env.CHART_FILE }} > /tmp/Chart.yaml && mv /tmp/Chart.yaml ${{ env.CHART_FILE }}
         
       - name: Setup Helm
-        uses: azure/setup-helm@v1
+        uses: azure/setup-helm@v3
 
       - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@v0
