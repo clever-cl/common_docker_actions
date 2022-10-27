@@ -17,6 +17,11 @@ on:
         type: string
         description: Path to the build context. Default to the workspace
         default: ''
+      trivyignores:
+        required: false
+        type: string
+        description: Comma-separated list of relative paths in repository to one or more .trivyignore files
+        default: ''
     secrets:
       BUILD_ARGS:
         required: false
@@ -73,3 +78,4 @@ jobs:
           exit-code: 1
           severity: 'CRITICAL,HIGH'
           security-checks: vuln,config
+          trivyignores: ${{ inputs.trivyignores }}
