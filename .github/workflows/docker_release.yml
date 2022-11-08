@@ -86,6 +86,37 @@ jobs:
           use_new_run: true
           debug_mode: false
 
+  build-push-uat:
+    name: [UAT] Docker build & Push
+    runs-on: gke-runner
+    environment: uat
+    if: (github.actor != 'dependabot[bot]' && github.ref_type == 'tag' && contains(github.ref_name, '-RC'))
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Docker Metadata
+        uses: docker/metadata-action@v3
+        id: metadata
+        with:
+          images: ${{ env.IMAGE_NAME }}
+          tags: |
+            ${{ env.RELEASE_TAG }}-UAT
+
+      - name: Kaniko build & push
+        uses: bymarshall/kaniko-action@v1.0.5
+        with:
+          push: true
+          tags: ${{ steps.metadata.outputs.tags }}
+          labels: ${{ steps.metadata.outputs.labels }}
+          file: ${{ inputs.dockerfile_path }}
+          context: ${{ inputs.docker_context }}
+          build_args: ${{ secrets.BUILD_ARGS }}
+          cache: true
+          cache_ttl: 24h
+          snapshot_mode: redo
+          use_new_run: true
+          debug_mode: false
 
   build-push-production:
     name: "[production] Docker build & Push"
@@ -170,6 +201,57 @@ jobs:
             set -e
             kubectl config set-context kubernetes --namespace=argocd && kubectl config use-context kubernetes
             kubectl patch applications.argoproj.io ${{ inputs.project_name }} --patch '{"spec": { "source": { "targetRevision": "${{ env.RELEASE_TAG }}" } }}' --type merge
+
+  release-uat:
+    name: "[UAT] Helm package & publish"
+    needs: build-push-uat
+    runs-on: gke-runner-staging
+    environment: uat
+    if: (github.actor != 'dependabot[bot]' && github.ref_type == 'tag' && contains(github.ref_name, '-RC'))
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Setup Chart
+        env:
+          ENVIRONMENT: uat
+          APP_GSA: ${{ secrets.APP_GSA }}
+          APP_KSA: ${{ secrets.APP_KSA }}
+          GOOGLE_PROJECT_ID: ${{ secrets.GOOGLE_PROJECT_ID }}
+          CLOUDFLARE_CA_KEY: ${{ secrets.CLOUDFLARE_CA_KEY }}
+        run: |
+            set -e
+            sudo apt update && sudo apt install gettext -y
+            envsubst < ${{ env.VALUES_FILE }} > /tmp/values.yaml && mv /tmp/values.yaml ${{ env.VALUES_FILE }}
+            envsubst < ${{ env.CHART_FILE }} > /tmp/Chart.yaml && mv /tmp/Chart.yaml ${{ env.CHART_FILE }}
+
+      - name: Setup Helm
+        uses: azure/setup-helm@v3
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v0
+
+      - name: Helm Auth
+        run: | 
+            gcloud auth application-default print-access-token | helm registry login -u oauth2accesstoken \
+            --password-stdin ${{ secrets.CLEVER_DOCKER_REGISTRY }}
+
+      - name: Helm Package & Push
+        run: |
+            helm package ${{ inputs.chart_path }}
+            helm push ${{ inputs.project_name }}-${{ env.RELEASE_TAG }}-UAT.tgz oci://${{ secrets.CLEVER_HELM_REGISTRY }}
+
+      - name: Setup kubectl 
+        uses: azure/setup-kubectl@v2.0
+        with:
+          version: 'v1.20.0'
+
+      - name: Release (UAT)
+        if: ${{ success() }}
+        run: |
+            set -e
+            kubectl config set-context kubernetes --namespace=argocd && kubectl config use-context kubernetes
+            kubectl patch applications.argoproj.io ${{ inputs.project_name }} --patch '{"spec": { "source": { "targetRevision": "${{ env.RELEASE_TAG }}-UAT" } }}' --type merge
 
   release-production:
     name: "[production] Helm package & publish"
