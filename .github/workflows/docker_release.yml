@@ -251,7 +251,7 @@ jobs:
         run: |
             set -e
             kubectl config set-context kubernetes --namespace=argocd && kubectl config use-context kubernetes
-            kubectl patch applications.argoproj.io ${{ inputs.project_name }} --patch '{"spec": { "source": { "targetRevision": "${{ env.RELEASE_TAG }}-UAT" } }}' --type merge
+            kubectl patch applications.argoproj.io ${{ inputs.project_name }}-uat --patch '{"spec": { "source": { "targetRevision": "${{ env.RELEASE_TAG }}-UAT" } }}' --type merge
 
   release-production:
     name: "[production] Helm package & publish"
