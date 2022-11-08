@@ -90,7 +90,7 @@ jobs:
     name: "[UAT] Docker build & Push"
     runs-on: gke-runner
     environment: uat
-    if: (github.actor != 'dependabot[bot]' && github.ref_type == 'tag' && contains(github.ref_name, '-RC'))
+    if: (github.actor != 'dependabot[bot]' && github.ref_type == 'tag' && contains(github.ref_name, '-RC-UAT'))
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -207,7 +207,7 @@ jobs:
     needs: build-push-uat
     runs-on: gke-runner-staging
     environment: uat
-    if: (github.actor != 'dependabot[bot]' && github.ref_type == 'tag' && contains(github.ref_name, '-RC'))
+    if: (github.actor != 'dependabot[bot]' && github.ref_type == 'tag' && contains(github.ref_name, '-RC-UAT'))
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -251,7 +251,7 @@ jobs:
         run: |
             set -e
             kubectl config set-context kubernetes --namespace=argocd && kubectl config use-context kubernetes
-            kubectl patch applications.argoproj.io ${{ inputs.project_name }}-uat --patch '{"spec": { "source": { "targetRevision": "${{ env.RELEASE_TAG }}-UAT" } }}' --type merge
+            kubectl patch applications.argoproj.io ${{ inputs.project_name }}-uat --patch '{"spec": { "source": { "targetRevision": "${{ env.RELEASE_TAG }}" } }}' --type merge
 
   release-production:
     name: "[production] Helm package & publish"
