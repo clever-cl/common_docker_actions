@@ -87,7 +87,7 @@ jobs:
           debug_mode: false
 
   build-push-uat:
-    name: [UAT] Docker build & Push
+    name: "[UAT] Docker build & Push"
     runs-on: gke-runner
     environment: uat
     if: (github.actor != 'dependabot[bot]' && github.ref_type == 'tag' && contains(github.ref_name, '-RC'))
@@ -239,7 +239,7 @@ jobs:
       - name: Helm Package & Push
         run: |
             helm package ${{ inputs.chart_path }}
-            helm push ${{ inputs.project_name }}-${{ env.RELEASE_TAG }}-UAT.tgz oci://${{ secrets.CLEVER_HELM_REGISTRY }}
+            helm push ${{ inputs.project_name }}-${{ env.RELEASE_TAG }}.tgz oci://${{ secrets.CLEVER_HELM_REGISTRY }}
 
       - name: Setup kubectl 
         uses: azure/setup-kubectl@v2.0
