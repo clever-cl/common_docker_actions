@@ -101,7 +101,7 @@ jobs:
         with:
           images: ${{ env.IMAGE_NAME }}
           tags: |
-            ${{ env.RELEASE_TAG }}-UAT
+            ${{ env.RELEASE_TAG }}
 
       - name: Kaniko build & push
         uses: bymarshall/kaniko-action@v1.0.5
